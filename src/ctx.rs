@@ -1,22 +1,44 @@
+extern crate coio;
 use consts::SocketType;
-use inproc::InprocManager;
+use std::thread;
+//use inproc::InprocManager;
 use rep;
-use req;
+//use req;
 use socket::ZmqSocket;
 use socket_base::SocketBase;
 
 
 /// Before using any ØMQ code you must create a ØMQ *context*.
 pub struct Context {
-    inproc_mgr: InprocManager,
+//	tx: mioco::MailboxOuterEnd<Fn()>,
+//    inproc_mgr: InprocManager,
+    _val: i32,
 }
 
 impl Context {
     /// Create a new ØMQ context.
     pub fn new() -> Context {
         Context {
-            inproc_mgr: InprocManager::new(),
+//			inproc_mgr: InprocManager::new(),
+			_val: 0,
         }
+    }
+
+    pub fn run(&mut self) {
+        use coio::{run, spawn, sched};
+
+		spawn(|| {
+			for _ in 0..10 {
+				println!("Heil Hydra");
+				sched();
+			}
+		});
+
+		run(1);
+
+//        self._mioco.start(move |_| {
+//			Ok(())
+//        });
     }
 
     /// This function shall create a ØMQ socket within the specified *context* and return a box of
@@ -30,10 +52,11 @@ impl Context {
     /// [`bind`](trait.ZmqSocket.html#tymethod.bind).
     ///
     pub fn socket(&self, type_: SocketType) -> Box<ZmqSocket + Send> {
-        let base = SocketBase::new(self.inproc_mgr.chan());
+        let base = SocketBase::new();//self.inproc_mgr.chan());
         match type_ {
-            SocketType::REQ => box req::new(base) as Box<ZmqSocket + Send>,
-            SocketType::REP => box rep::new(base) as Box<ZmqSocket + Send>,
+//            SocketType::REQ => Box::new(req::new(base) as Box<ZmqSocket + Send>),
+//            SocketType::REP => Box::new(rep::new(base)) as Box<ZmqSocket + Send>,
+			_ => Box::new(rep::new(base)) as Box<ZmqSocket + Send>,
         }
     }
 }
@@ -45,6 +68,6 @@ mod test {
 
     #[test]
     fn test_new() {
-        Context::new();
+        Context::new().run();
     }
 }
